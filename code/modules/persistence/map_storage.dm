@@ -104,7 +104,7 @@ var/global/list/debug_data = list()
 
 /turf/after_load()
 	..()
-	// decals = saved_decals.Copy()
+	//decals = saved_decals.Copy()
 	queue_icon_update()
 	if(dynamic_lighting)
 		lighting_build_overlay()
