@@ -121,7 +121,6 @@ GLOBAL_LIST_EMPTY(recent_articles)
 /datum/faction_research
 	var/points = 0
 	var/list/unlocked = list()
-	map_storage_saved_vars = "points;unlocked"
 
 /datum/world_faction/proc/get_assignment(var/assignment, var/real_name)
 	if(!assignment) return null
@@ -136,8 +135,8 @@ GLOBAL_LIST_EMPTY(recent_articles)
 	for(var/datum/computer_file/report/crew_record/R in records.faction_records)
 		if(R.get_name() == real_name)
 			return R
-	var/datum/computer_file/report/crew_record/L = Retrieve_Record_Faction(real_name, src)
-	return L
+	//var/datum/computer_file/report/crew_record/L = Retrieve_Record_Faction(real_name, src)
+	//return L
 
 /datum/world_faction/proc/rebuild_all_access()
 	all_access = list()
