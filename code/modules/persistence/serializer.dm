@@ -63,12 +63,12 @@
 				var/datum/D = item
 				if(QDELETED(D))
 					continue
-				Q.AddThingListVar(thing_id, D.type, "thing/" + GetOrSaveThing(D))
+				Q.AddThingListVar(thing_id, D.type, "thing/[GetOrSaveThing(D)]")
 			else if(istype(item, /list))
 				var/list/L2 = item
 				if(!L2.len)
 					continue
-				Q.AddThingListVar(thing_id, "/list", "list/" + GetOrSaveThing(L2))
+				Q.AddThingListVar(thing_id, "/list", "list/[GetOrSaveThing(L2)]")
 			else
 				Q.AddThingListVar(thing_id, "basic", "[item]")
 	else
