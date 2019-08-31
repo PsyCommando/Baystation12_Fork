@@ -56,9 +56,9 @@
 			Q.AddThingVar(thing_id, thing_type, V, thing_value)
 	else if(islist(T))
 		thing_id = Q.AddThing("/list")
-		thing_ref_map[D] = thing_id
+		thing_ref_map[T] = thing_id
 		var/list/L = T // cast to list
-		for(var/item in L)			
+		for(var/item in L)
 			if(istype(item, /datum))
 				var/datum/D = item
 				if(QDELETED(D))
