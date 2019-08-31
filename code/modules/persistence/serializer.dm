@@ -38,7 +38,7 @@
 				if(QDELETED(D2))
 					continue
 				// Try to fetch the datum, in case it's already been serialized.
-				thing_value = "thing/" + GetOrSaveThing(D2)
+				thing_value = "thing/[GetOrSaveThing(D2)]"
 				thing_type = D2.type
 			// Guard check. Skip empty lists.
 			else if(islist(D.vars[V]))
@@ -46,7 +46,7 @@
 				if(!L2.len)
 					continue
 				// Try to fetch the list if it's somehow already been serialized.
-				thing_value = "list/" + GetOrSaveThing(L2)
+				thing_value = "list/[GetOrSaveThing(L2)]"
 				thing_type = "/list"
 			else
 				thing_value = "[D.vars[V]]"
