@@ -4,6 +4,13 @@
 /mob
 	var/stored_ckey = "" // Special component for character persistence to maintain links to owner ckeys.
 
+/datum/proc/should_save()
+	if(QDELETED(.))
+		return FALSE
+	if(gc_destroyed)
+		return FALSE
+	return should_save
+
 /datum/proc/before_load()
 	return
 
