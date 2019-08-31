@@ -25,6 +25,7 @@
 		var/datum/D = T
 		to_world("saving datum [D.type]")
 		thing_id = Q.AddThing(D.type)
+		thing_ref_map[D] = thing_id
 		for(var/V in D.vars)
 			var/thing_type
 			var/thing_value
@@ -55,6 +56,7 @@
 			Q.AddThingVar(thing_id, thing_type, V, thing_value)
 	else if(islist(T))
 		thing_id = Q.AddThing("/list")
+		thing_ref_map[D] = thing_id
 		var/list/L = T // cast to list
 		for(var/item in L)			
 			if(istype(item, /datum))
