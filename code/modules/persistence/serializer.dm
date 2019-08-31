@@ -38,6 +38,9 @@
 				var/datum/D2 = D.vars[V]
 				if(QDELETED(D2))
 					continue
+				// Guard check. Don't save it if it says not to.
+				if(!D2.should_save)
+					continue
 				// Try to fetch the datum, in case it's already been serialized.
 				thing_value = "thing/[GetOrSaveThing(D2)]"
 				thing_type = D2.type
@@ -62,6 +65,9 @@
 			if(istype(item, /datum))
 				var/datum/D = item
 				if(QDELETED(D))
+					continue
+				// Guard check. Don't save it if it says not to.
+				if(!D.should_save)
 					continue
 				Q.AddThingListVar(thing_id, D.type, "thing/[GetOrSaveThing(D)]")
 			else if(istype(item, /list))
