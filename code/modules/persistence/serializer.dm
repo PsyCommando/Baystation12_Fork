@@ -91,7 +91,7 @@
 				if(!D2.should_save())
 					continue
 				// Try to fetch the datum, in case it's already been serialized.
-				thing_value = "thing/[GetOrSaveThing(D2)]"
+				thing_value = "[GetOrSaveThing(D2)]"
 				thing_type = D2.type
 			// Guard check. Skip empty lists.
 			else if(islist(D.vars[V]))
@@ -99,7 +99,7 @@
 				if(!L2.len)
 					continue
 				// Try to fetch the list if it's somehow already been serialized.
-				thing_value = "list/[GetOrSaveThing(L2)]"
+				thing_value = "[GetOrSaveThing(L2)]"
 				thing_type = "/list"
 			else
 				thing_value = "[D.vars[V]]"
@@ -120,12 +120,12 @@
 				// Guard check. Don't save it if it says not to.
 				if(!D.should_save)
 					continue
-				Q.AddThingListVar(thing_id, D.type, "thing/[GetOrSaveThing(D)]")
+				Q.AddThingListVar(thing_id, D.type, "[GetOrSaveThing(D)]")
 			else if(istype(item, /list))
 				var/list/L2 = item
 				if(!L2.len)
 					continue
-				Q.AddThingListVar(thing_id, "/list", "list/[GetOrSaveThing(L2)]")
+				Q.AddThingListVar(thing_id, "/list", "[GetOrSaveThing(L2)]")
 			else
 				Q.AddThingListVar(thing_id, "basic", "[item]")
 	else

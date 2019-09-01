@@ -76,6 +76,7 @@ SUBSYSTEM_DEF(autosave)
 			var/turf/T = locate(x,y,z)
 			if(!T || ((T.type == /turf/space || T.type == /turf/simulated/open) && (!T.contents || !T.contents.len)))
 				continue
+			T.z_level = z
 			try
 				S.GetOrSaveThing(T)
 			catch(var/exception/e)
