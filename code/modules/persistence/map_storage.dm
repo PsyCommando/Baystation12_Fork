@@ -1,14 +1,12 @@
 /datum
 	var/should_save = 1 // A special override that can tell the persistence system to not save this datum.
-
-/mob
-	var/stored_ckey = "" // Special component for character persistence to maintain links to owner ckeys.
+	var/list/persistent_saved_vars
 
 /datum/proc/should_save()
-	if(QDELETED(.))
+	if(QDELETED(src))
 		return FALSE
-	if(gc_destroyed)
-		return FALSE
+	//if(gc_destroyed)
+	//	return FALSE
 	return should_save
 
 /datum/proc/before_load()
@@ -27,8 +25,19 @@
 	// and want to change them back after
 	return
 
-/atom/movable/lighting_overlay
-	should_save = 0 // Do not save lighting overlays.
+/datum/proc/get_saved_vars()
+	// If FALSY is returned, everything will be serialized. (if should_save is 1)
+	// If a /list is returned, only variables in the list will be saved.
+	return persistent_saved_vars
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Turf
+//
+/turf
+	persistent_saved_vars = list("density","icon_state","name","pixel_x","pixel_y","contents","dir")
+
+/turf/space
+	persistent_saved_vars = "contents"
 
 /turf/space/after_load()
 	..()
@@ -46,10 +55,30 @@
 	else
 		lighting_clear_overlay()
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Area
+//
+/area/after_load()
+	power_change() // Refresh power systems after loading an area.
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Obj
+//
+/obj
+	persistent_saved_vars = list("density","icon_state","name","pixel_x","pixel_y","contents","dir")
+
 /obj/after_load()
 	..()
 	queue_icon_update() // Update icon updates after obj loads.
 
-/area/after_load()
-	power_change() // Refresh power systems after loading an area.
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Atoms
+//
+/atom/movable/lighting_overlay
+	should_save = 0 // Do not save lighting overlays.
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Mobs
+//
+/mob
+	var/stored_ckey = "" // Special component for character persistence to maintain links to owner ckeys.

@@ -40,7 +40,7 @@ SUBSYSTEM_DEF(autosave)
 	var/starttime = REALTIMEOFDAY
 	var/datum/persistence/query_builder/Q = new()
 	var/datum/persistence/serializer/save/S = new(Q)
-
+	var/chunks_processed = 0
 	to_world("<font size=3 color='green'>Saving chunks..</font>")
 	for(var/z in 1 to world.maxz)
 		for(var/x in 1 to world.maxx step SAVECHUNK_SIZEX)
@@ -48,6 +48,9 @@ SUBSYSTEM_DEF(autosave)
 				to_world("saving chunk [x],[y],[z]")
 				Save_Chunk(S,x,y,z)
 				Q.Execute()
+				chunks_processed++
+				if(chunks_processed > 10)
+					break
 	
 
 	// to_world("<font size=3 color='green'>Saving areas..</font>")

@@ -9,24 +9,68 @@
 	Q = qb
 
 /datum/persistence/serializer/save/proc/GetOrSaveThing(var/T)
-	var/thing_id = thing_ref_map[T]
+	var/thing_id = get_thing_index(T)
 	if(thing_id)
 		return thing_id
-	thing_id = SerializeThing(T)
-	thing_ref_map[T] = thing_id
+	thing_id = serialize_thing(T)
+	if(!thing_id) // null guard check in case we skipped this thing.
+		return
+	add_thing_reference(T, thing_id)
 	return thing_id
 
+// Determine what we're saving on an object.
+/datum/persistence/serializer/save/get_saved_vars(var/datum/D)
+	var/list/saved_vars = D.get_saved_vars()
+	if(!saved_vars)
+		saved_vars = D.vars
+	return saved_vars
+
+// Add a new reference to the ref maps for later resolution.
+/datum/persistence/serializer/save/proc/add_thing_reference(var/T, var/index)
+	var/type
+	if(islist(T))
+		type = "/list"
+	else
+		var/datum/D = T
+		type = D.type
+
+	var/list/ref_map = thing_ref_map[type]
+	if(!ref_map)
+		ref_map = list()
+		thing_ref_map[type] = ref_map
+	ref_map[T] = index
+
+// Get a cached reference index for a thing already serialized.
+/datum/persistence/serializer/save/proc/get_thing_index(var/T)
+	var/type
+	if(islist(T))
+		type = "/list"
+	else
+		var/datum/D = T
+		type = D.type
+	
+	var/list/ref_map = thing_ref_map[type]
+	if(!ref_map)
+		return
+	return ref_map[T]
+		
 // This is called when we have failed to GetOrSaveThing, meaning the Thing is not yet serialized.
-/datum/persistence/serializer/save/proc/SerializeThing(var/T)
+/datum/persistence/serializer/save/proc/serialize_thing(var/T)
 	//T.before_save()
 	// Create the thing. First determine what it is.
 	var/thing_id = 0
 	if(istype(T, /datum))
 		var/datum/D = T
 		to_world("saving datum [D.type]")
+		// Before save preparation.
+		D.before_save()
+
+		// Begin saving the thing.
 		thing_id = Q.AddThing(D.type)
-		thing_ref_map[D] = thing_id
-		for(var/V in D.vars)
+		add_thing_reference(D, thing_id) // To resolve recursive references
+
+		var/list/saved_vars = get_saved_vars(D) // What we're saving
+		for(var/V in saved_vars)
 			var/thing_type
 			var/thing_value
 
@@ -55,10 +99,14 @@
 				thing_type = "basic"
 			// Passed the tests. Save the thing as a variable on the master thing.
 			Q.AddThingVar(thing_id, thing_type, V, thing_value)
+		// After save cleanup.
+		D.after_save()
 	else if(islist(T))
-		thing_id = Q.AddThing("/list")
-		thing_ref_map[T] = thing_id
 		var/list/L = T // cast to list
+
+		thing_id = Q.AddThing("/list")		
+		add_thing_reference(L, thing_id)
+
 		for(var/item in L)
 			if(istype(item, /datum))
 				var/datum/D = item
