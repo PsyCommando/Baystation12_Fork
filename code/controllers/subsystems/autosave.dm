@@ -45,11 +45,11 @@ SUBSYSTEM_DEF(autosave)
 	for(var/z in 1 to world.maxz)
 		for(var/x in 1 to world.maxx step SAVECHUNK_SIZEX)
 			for(var/y in 1 to world.maxy step SAVECHUNK_SIZEY)
-				to_world("saving chunk [x],[y],[z]")
+				//to_world("saving chunk [x],[y],[z]")
 				Save_Chunk(S,x,y,z)
 				Q.Execute()
 				chunks_processed++
-				if(chunks_processed > 10)
+				if(chunks_processed > 1000)
 					break
 	
 
@@ -64,11 +64,10 @@ SUBSYSTEM_DEF(autosave)
 	// Save_Records(dir)
 
 	if(reallow) config.enter_allowed = 1
-	to_world("Saving Completed in [(REALTIMEOFDAY - starttime)/10] seconds!")
-	to_world("Saving Complete")
+	to_world("<font size=3 color='green'>Saving Completed in [(REALTIMEOFDAY - starttime)/10] seconds!</font>")
+	to_world("<font size=3 color='green'>Saving Complete</font>")
 
 /datum/controller/subsystem/autosave/proc/Save_Chunk(var/datum/persistence/serializer/save/S, var/xi, var/yi, var/zi)
-	to_world("in save chunk method")
 	var/z = zi
 	xi = (xi - (xi % SAVECHUNK_SIZEX) + 1)
 	yi = (yi - (yi % SAVECHUNK_SIZEY) + 1)

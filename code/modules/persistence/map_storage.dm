@@ -71,6 +71,9 @@
 	..()
 	queue_icon_update() // Update icon updates after obj loads.
 
+/obj/effect/overlay
+	should_save = 0
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Atoms
 //
@@ -82,3 +85,4 @@
 //
 /mob
 	var/stored_ckey = "" // Special component for character persistence to maintain links to owner ckeys.
+	//persistent_saved_vars = list("lastKnownIP", "stat", "sdisabilities", "disabilities", "phoronation", "radiation", "timeofdeath", "blinded", "ear_def", "paralysis", "stunned", "druggy", "confused", "sleeping", "resting", "weakened", "drowsyne)

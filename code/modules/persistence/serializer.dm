@@ -9,12 +9,18 @@
 	Q = qb
 
 /datum/persistence/serializer/save/proc/GetOrSaveThing(var/T)
+	// Special guard check.
+	if(istype(T, /datum))
+		var/datum/D = T
+		if(!D.should_save())
+			return -1
+
 	var/thing_id = get_thing_index(T)
 	if(thing_id)
 		return thing_id
 	thing_id = serialize_thing(T)
 	if(!thing_id) // null guard check in case we skipped this thing.
-		return
+		return -1
 	add_thing_reference(T, thing_id)
 	return thing_id
 
@@ -61,7 +67,6 @@
 	var/thing_id = 0
 	if(istype(T, /datum))
 		var/datum/D = T
-		to_world("saving datum [D.type]")
 		// Before save preparation.
 		D.before_save()
 
@@ -70,6 +75,8 @@
 		add_thing_reference(D, thing_id) // To resolve recursive references
 
 		var/list/saved_vars = get_saved_vars(D) // What we're saving
+		var/foo = jointext(saved_vars, ", ")
+		//to_world("saving datum [D.type], vars: [foo]")
 		for(var/V in saved_vars)
 			var/thing_type
 			var/thing_value
