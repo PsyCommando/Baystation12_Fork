@@ -34,11 +34,10 @@
 // Turf
 //
 /turf
-	var/z_level
-	persistent_saved_vars = list("density","icon_state","name","pixel_x","pixel_y","z_level","contents","dir")
+	persistent_saved_vars = list("density","icon_state","name","pixel_x","pixel_y","contents","dir","x","y","z")
 
 /turf/space
-	persistent_saved_vars = list("pixel_x","pixel_y","z_level","contents")
+	persistent_saved_vars = list("pixel_x","pixel_y","contents","x","y","z")
 
 /turf/space/after_load()
 	..()

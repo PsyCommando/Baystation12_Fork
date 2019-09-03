@@ -1,12 +1,24 @@
-/datum/persistence/serializer/save
-	var/list/thing_ref_map = list() // Used as a map for fixing recursive references (for datums and lists).
-	var/list/area_ref_map = list() // Used as a map for fixing recursive references (for areas specifically)
-
 /datum/persistence/serializer
 	var/datum/persistence/query_builder/Q
 
 /datum/persistence/serializer/New(var/datum/persistence/query_builder/qb)
 	Q = qb
+
+/datum/persistence/serializer/save
+	var/list/thing_ref_map = list() // Used as a map for fixing recursive references (for datums and lists).
+	var/list/area_ref_map = list() // Used as a map for fixing recursive references (for areas specifically)
+
+/datum/persistence/serializer/load
+	var/list/resolved_things = list() // Used as a map to resolve indexes (ints) into objects.
+
+/datum/persistence/serializer/load/proc/GetOrLoadThing(var/index)
+	var/T = resolved_things[index]
+	if(T)
+		return T
+	
+	// It is not resolved. So resolve it.
+	T = deserialize_thing(index)
+	return T
 
 /datum/persistence/serializer/save/proc/GetOrSaveThing(var/T)
 	// Special guard check.
@@ -135,3 +147,86 @@
 	//T.after_save()
 	return thing_id
 
+/datum/persistence/serializer/load/proc/deserialize_thing(var/index)
+	establish_db_connection()
+	if(!dbcon.IsConnected())
+		crash_with("Unable to execute db save query. No connection with database? Check MySQL connection details.")
+	var/DBQuery/query = dbcon.NewQuery("SELECT `type` FROM `thing` WHERE `id`=[index] AND `version`=[Q.version];")
+	query.Execute()
+	query.NextRow()
+
+	var/thing_type = text2path(query.item[1])
+	if(!thing_type)
+		crash_with("Unable to decode thing type of [query.item[1]]. Aborting deserialization.")
+		return
+	
+	world.log << "Deserializing [thing_type]"
+
+	query = dbcon.NewQuery("SELECT `type`,`name`,`value` FROM `thing_var` WHERE `thing_id`=index AND `version`=[Q.version];")
+	query.Execute()
+
+	// thing instance
+	var/T
+	if(istype(thing_type, /turf))
+		// first need to pull XYZ.
+		var/x = -1
+		var/y = -1
+		var/z = -1
+		while(query.NextRow())
+			if(query.item[2] == "x")
+				x = text2num(query.item[3])
+			else if(query.item[2] == "y")
+				y = text2num(query.item[3])
+			else if(query.item[2] == "z")
+				z = text2num(query.item[3])
+		
+		if(x < 0 || y < 0 || z < 0)
+			crash_with("Unable to find x,y,z coordinates for turf. Aborting deserialization.")
+			return
+
+		// special nonsense with turfs
+		T = new thing_type(locate(x, y, z))
+		world.log << "Deserialized turf @ [x],[y],[z]"
+		// Reset the query reader and do the deserialization properly.
+		query.Execute()
+	else if(istype(thing_type, /datum) || islist(thing_type))
+		T = new thing_type()
+	else
+		// No idea what this is.
+		crash_with("Unable to figure out how to handle type [thing_type]. Aborting deserialization.")
+		return
+	
+	// Cache the new reference.
+	resolved_things[index] = T
+
+	// Deserialize all variables.
+	if(islist(T))
+		var/list/L = T
+		// lists are special, and have their own execution path..
+		query = dbcon.NewQuery("SELECT `type`,`value` FROM `thing_list_var` WHERE `thing_id`=[index] AND `version`=[Q.version];")
+		query.Execute()
+
+		while(query.NextRow())
+			if(query.item[1] == "basic")
+				L += query.item[2]
+				continue
+			
+			var/element_type = text2path(query.item[1])	
+			if(istype(element_type, /datum) || islist(element_type))
+				var/thing_index = text2num(query.item[2])
+				L += GetOrLoadThing(thing_index)
+			else
+				crash_with("I don't know what [element_type] is. List deserialization failed.")
+				continue
+	else
+		while(query.NextRow())
+			if(query.item[1] == "basic")
+				T[query.item[2]] = query.item[3]
+			else if(query.item[1] == "/list" || query.item[1] == "/thing")
+				// value will be the index.
+				var/thing_index = text2num(query.item[3])
+				T[query.item[2]] = GetOrLoadThing(thing_index)
+			else
+				crash_with("Unable to figure out what [query.item[1]] is for [index]. Variable [query.item[2]], value: [query.item[3]]")
+	return T
+	

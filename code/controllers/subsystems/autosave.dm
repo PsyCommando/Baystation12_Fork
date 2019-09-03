@@ -50,8 +50,7 @@ SUBSYSTEM_DEF(autosave)
 				Q.Execute()
 				chunks_processed++
 				if(chunks_processed > 1000)
-					break
-	
+					break	
 
 	// to_world("<font size=3 color='green'>Saving areas..</font>")
 	// for(var/area/A in areas_to_save)
@@ -76,11 +75,23 @@ SUBSYSTEM_DEF(autosave)
 			var/turf/T = locate(x,y,z)
 			if(!T || ((T.type == /turf/space || T.type == /turf/simulated/open) && (!T.contents || !T.contents.len)))
 				continue
-			T.z_level = z
 			try
 				S.GetOrSaveThing(T)
 			catch(var/exception/e)
 				to_world("[e] on [e.file]:[e.line]")
+
+/proc/Load_World()
+	var/datum/persistence/query_builder/Q = new()
+	var/datum/persistence/serializer/load/L = new(Q)
+
+	establish_db_connection()
+	if(!dbcon.IsConnected())
+		crash_with("Unable to execute db save query. No connection with database? Check MySQL connection details.")
+	var/DBQuery/query = dbcon.NewQuery("SELECT id FROM `thing` WHERE `type` LIKE \"/turf/%\" AND `version` = 1")
+	query.Execute()
+
+	while(query.NextRow())
+		L.GetOrLoadThing(query.item[1])
 
 /datum/controller/subsystem/autosave/proc/AnnounceSave()
 	var/minutes = (next_fire - world.time) / (1 MINUTE)

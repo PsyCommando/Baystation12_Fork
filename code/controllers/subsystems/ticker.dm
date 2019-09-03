@@ -32,7 +32,7 @@ SUBSYSTEM_DEF(ticker)
 		master_mode = "persistent"
 		mode = /datum/game_mode/persistent()
 		start_ASAP = TRUE
-		//Load_World()
+		Load_World()
 		to_world("<B><FONT color='blue'>Welcome to persistent mode!</FONT></B>")
 		return ..()
 	to_world("<B><FONT color='blue'>Welcome to the pre-game lobby!</FONT></B>")
