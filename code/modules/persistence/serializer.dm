@@ -101,8 +101,13 @@
 		thing_id = Q.AddThing("/list")		
 		add_thing_reference(L, thing_id)
 
+		var/index = 1
 		for(var/item in L)
-			serialize_thing_var(thing_id, item, 0, TRUE)
+			if(istype(L[item], null))
+				serialize_thing_var(thing_id, L[item], item, TRUE)
+			else
+				serialize_thing_var(thing_id, item, index, TRUE)
+			index++
 	else
 		crash_with("SerializeThing was passed a basic data value? Stahp.")
 		return
@@ -123,7 +128,7 @@
 			return
 		// Add datum as an element to the thing.
 		if(is_list)
-			Q.AddThingListVar(thing_id, D.type, get_or_save_thing(D))
+			Q.AddThingListVar(thing_id, D.type, var_name, get_or_save_thing(D))
 		else 
 			Q.AddThingVar(thing_id, D.type, var_name, get_or_save_thing(D))
 	// Guard check. Skip empty lists.
@@ -133,7 +138,7 @@
 			return
 
 		if(is_list)
-			Q.AddThingListVar(thing_id, "/list", get_or_save_thing(L))
+			Q.AddThingListVar(thing_id, "/list", var_name, get_or_save_thing(L))
 		else
 			Q.AddThingVar(thing_id, "/list", var_name, get_or_save_thing(L))
 	else
@@ -145,7 +150,7 @@
 		else if(istext(V))
 			basic_type = "text"
 		if(is_list)
-			Q.AddThingListVar(thing_id, basic_type, V)
+			Q.AddThingListVar(thing_id, basic_type, var_name, V)
 		else
 			Q.AddThingVar(thing_id, basic_type, var_name, V)
 

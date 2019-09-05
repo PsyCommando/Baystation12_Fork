@@ -28,10 +28,11 @@
 	//world.log << "INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version]);"
 	return thing_var_index
 
-/datum/persistence/query_builder/proc/AddThingListVar(var/thing_id, var/type, var/value)
+/datum/persistence/query_builder/proc/AddThingListVar(var/thing_id, var/type, var/key, var/value)
 	thing_list_var_index++
 	var/svalue = sql_sanitize_text("[value]")
-	query_list_vars += "([thing_list_var_index],[thing_id],'[type]','[svalue]',[version])"
+	var/skey = sql_sanitize_text("[key]")
+	query_list_vars += "([thing_list_var_index],[thing_id],'[type]','[skey]','[svalue]',[version])"
 	//Q += "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version])"
 	//world.log << "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version]);"
 	return thing_list_var_index
@@ -58,7 +59,7 @@
 		query.Execute()
 		query = dbcon.NewQuery("INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES" + jointext(query_thing_vars, ", "))
 		query.Execute()
-		query = dbcon.NewQuery("INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES" + jointext(query_list_vars, ", "))
+		query = dbcon.NewQuery("INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `key`, `value`, `version`) VALUES" + jointext(query_list_vars, ", "))
 		query.Execute()
 	catch(var/exception/e)
 		to_world("<font size=3 color='red'>[e] on [e.file]:[e.line]</font>")
