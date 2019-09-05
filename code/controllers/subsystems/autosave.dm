@@ -58,7 +58,7 @@ SUBSYSTEM_DEF(autosave)
 
 	to_world("<font size=3 color='green'>Saving areas..</font>")
 	for(var/area/A in areas_to_save)
-	 	if(istype(A, /area/space)) continue
+		if(istype(A, /area/space)) continue
 		
 		var/area_id = Q.AddArea(A.name, A.type)
 		for(var/turf/T in A.contents)
