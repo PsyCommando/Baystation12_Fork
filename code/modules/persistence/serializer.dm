@@ -15,7 +15,7 @@
 	var/T = resolved_things[index]
 	if(T)
 		return T
-	
+
 	// It is not resolved. So resolve it.
 	T = deserialize_thing(index)
 	return T
@@ -66,7 +66,7 @@
 	else
 		var/datum/D = T
 		type = D.type
-	
+
 	var/list/ref_map = thing_ref_map[type]
 	if(!ref_map)
 		return
@@ -87,8 +87,6 @@
 		add_thing_reference(D, thing_id) // To resolve recursive references
 
 		var/list/saved_vars = get_saved_vars(D) // What we're saving
-		var/foo = jointext(saved_vars, ", ")
-		//to_world("saving datum [D.type], vars: [foo]")
 		for(var/V in saved_vars)
 			// Guard check. Don't bother saving things with a default value
 			if(D.vars[V] == initial(D.vars[V]))
@@ -98,16 +96,22 @@
 		D.after_save()
 	else if(islist(T))
 		var/list/L = T // cast to list
-		thing_id = Q.AddThing("/list")		
+		thing_id = Q.AddThing("/list")
 		add_thing_reference(L, thing_id)
 
-		var/index = 1
-		for(var/item in L)
-			if(L == null || L[item] == null)
-				serialize_thing_var(thing_id, item, index, TRUE)
-			else
-				serialize_thing_var(thing_id, L[item], item, TRUE)
-			index++
+		var/item
+		// Actually serialize the list.
+		for(item in L)
+			try
+				if(isnull(item) || isnum(item) || isnull(L[item]))
+					serialize_thing_var(thing_id, item, "", TRUE)
+				else
+					serialize_thing_var(thing_id, L[item], item, TRUE)
+			catch(var/exception/e)
+				to_world("[e] on [e.file]:[e.line], item value: '[item]'. isnull: [isnull(item)], isnum: [isnum(item)]")
+				
+				return thing_id
+				
 	else
 		crash_with("SerializeThing was passed a basic data value? Stahp.")
 		return
@@ -129,7 +133,7 @@
 		// Add datum as an element to the thing.
 		if(is_list)
 			Q.AddThingListVar(thing_id, D.type, var_name, get_or_save_thing(D))
-		else 
+		else
 			Q.AddThingVar(thing_id, D.type, var_name, get_or_save_thing(D))
 	// Guard check. Skip empty lists.
 	else if(islist(V))
@@ -166,7 +170,7 @@
 	if(!thing_type)
 		crash_with("Unable to decode thing type of [query.item[1]]. Aborting deserialization.")
 		return
-	
+
 	world.log << "Deserializing [thing_type]"
 
 	query = dbcon.NewQuery("SELECT `type`,`name`,`value` FROM `thing_var` WHERE `thing_id`=index AND `version`=[Q.version];")
@@ -186,7 +190,7 @@
 				y = text2num(query.item[3])
 			else if(query.item[2] == "z")
 				z = text2num(query.item[3])
-		
+
 		if(x < 0 || y < 0 || z < 0)
 			crash_with("Unable to find x,y,z coordinates for turf. Aborting deserialization.")
 			return
@@ -202,7 +206,7 @@
 		// No idea what this is.
 		crash_with("Unable to figure out how to handle type [thing_type]. Aborting deserialization.")
 		return
-	
+
 	// Cache the new reference.
 	resolved_things[index] = T
 
@@ -217,8 +221,8 @@
 			if(query.item[1] == "basic")
 				L += query.item[2]
 				continue
-			
-			var/element_type = text2path(query.item[1])	
+
+			var/element_type = text2path(query.item[1])
 			if(istype(element_type, /datum) || islist(element_type))
 				var/thing_index = text2num(query.item[2])
 				L += get_or_load_thing(thing_index)
@@ -236,4 +240,4 @@
 			else
 				crash_with("Unable to figure out what [query.item[1]] is for [index]. Variable [query.item[2]], value: [query.item[3]]")
 	return T
-	
+

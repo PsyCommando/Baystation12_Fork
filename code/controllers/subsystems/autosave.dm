@@ -56,15 +56,15 @@ SUBSYSTEM_DEF(autosave)
 				if(chunks_processed > 1000)
 					break
 
-	to_world("<font size=3 color='green'>Saving areas..</font>")
-	for(var/area/A in areas_to_save)
-		if(istype(A, /area/space)) continue
+	// to_world("<font size=3 color='green'>Saving areas..</font>")
+	// for(var/area/A in areas_to_save)
+	// 	if(istype(A, /area/space)) continue
 		
-		var/area_id = Q.AddArea(A.name, A.type)
-		for(var/turf/T in A.contents)
-			var/turf_id = S.get_or_save_thing(T)
-			Q.AddAreaTurf(area_id, turf_id, T.x, T.y, T.z)
-	Q.Execute()
+	// 	var/area_id = Q.AddArea(A.name, A.type)
+	// 	for(var/turf/T in A.contents)
+	// 		var/turf_id = S.get_or_save_thing(T)
+	// 		Q.AddAreaTurf(area_id, turf_id, T.x, T.y, T.z)
+	// Q.Execute()
 
 	// 	var/datum/area_holder/holder = new()
 	// 	holder.area_type = A.type
