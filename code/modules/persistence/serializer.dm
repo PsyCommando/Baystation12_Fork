@@ -103,10 +103,10 @@
 
 		var/index = 1
 		for(var/item in L)
-			if(istype(L[item], null))
-				serialize_thing_var(thing_id, L[item], item, TRUE)
-			else
+			if(L == null || L[item] == null)
 				serialize_thing_var(thing_id, item, index, TRUE)
+			else
+				serialize_thing_var(thing_id, L[item], item, TRUE)
 			index++
 	else
 		crash_with("SerializeThing was passed a basic data value? Stahp.")
@@ -143,7 +143,7 @@
 			Q.AddThingVar(thing_id, "/list", var_name, get_or_save_thing(L))
 	else
 		var/basic_type = "anomalous"
-		if(istype(V, null))
+		if(V == null)
 			return // Do not serialize nulls.
 		else if(isnum(V))
 			basic_type = "number"

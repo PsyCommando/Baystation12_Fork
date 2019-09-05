@@ -9,14 +9,15 @@
 	var/list/query_thing_vars = list()
 	var/list/query_list_vars = list()
 
+	var/list/query_areas = list()
+	var/list/query_area_turfs = list()
+
 /datum/persistence/query_builder/New(var/V = 1)
 	version = V
 
 /datum/persistence/query_builder/proc/AddThing(var/type)
 	thing_index++
 	query_things += "([thing_index],'[type]',[version])"
-	//Q += "INSERT INTO `thing` (`id`,`type`,`version`) VALUES([thing_index],'[type]',[version])"
-	//world.log << "INSERT INTO `thing` (`id`,`type`,`version`) VALUES([thing_index],'[type]',[version]);"
 	return thing_index
 
 /datum/persistence/query_builder/proc/AddThingVar(var/thing_id, var/type, var/name, var/value)
@@ -24,8 +25,6 @@
 	var/sname = sql_sanitize_text(name)
 	var/svalue = sql_sanitize_text("[value]")
 	query_thing_vars += "([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version])"
-	//Q += "INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version])"
-	//world.log << "INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version]);"
 	return thing_var_index
 
 /datum/persistence/query_builder/proc/AddThingListVar(var/thing_id, var/type, var/key, var/value)
@@ -33,20 +32,16 @@
 	var/svalue = sql_sanitize_text("[value]")
 	var/skey = sql_sanitize_text("[key]")
 	query_list_vars += "([thing_list_var_index],[thing_id],'[type]','[skey]','[svalue]',[version])"
-	//Q += "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version])"
-	//world.log << "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version]);"
 	return thing_list_var_index
 
-/datum/persistence/query_builder/proc/AddArea(var/name)
+/datum/persistence/query_builder/proc/AddArea(var/name, var/type)
 	area_index++
 	var/sname = sql_sanitize_text(name)
-	//Q += "INSERT INTO `area` (`id`,`name`,`version`) VALUES([area_index],'[sname]',[version])"
-	//world.log << "INSERT INTO `area` (`id`,`name`,`version`) VALUES([area_index],'[sname]',[version]);"
+	query_areas += "([area_index],'[sname]','[type]',[version])"
 	return area_index
 
-/datum/persistence/query_builder/proc/AddAreaTurf(var/area_id, var/thing_id, var/pixel_x, var/pixel_y, var/z_layer)
-	//Q |= "INSERT INTO `area_turf (`area_id`,`thing_id`,`pixel_x`,`pixel_y`,`z_layer`,`version`) VALUES([area_id],[thing_id],[pixel_x],[pixel_y],[z_layer],[version])"
-	//world.log << "INSERT INTO `area_turf (`area_id`,`thing_id`,`pixel_x`,`pixel_y`,`z_layer`,`version`) VALUES([area_id],[thing_id],[pixel_x],[pixel_y],[z_layer],[version]);"
+/datum/persistence/query_builder/proc/AddAreaTurf(var/area_id, var/thing_id, var/x, var/y, var/z)
+	query_area_turfs += "([area_id],[thing_id],[x],[y],[z],[version])"
 
 /datum/persistence/query_builder/proc/Execute()
 	//to_world("executing save query")
@@ -61,11 +56,17 @@
 		query.Execute()
 		query = dbcon.NewQuery("INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `key`, `value`, `version`) VALUES" + jointext(query_list_vars, ", "))
 		query.Execute()
+		query = dbcon.NewQuery("INSERT INTO `area` (`id`,`name`,`type`,`version`) VALUES" + jointext(query_areas, ", "))
+		query.Execute()
+		query = dbcon.NewQuery("INSERT INTO `area_turf(`area_id`,`thing_id`,`x`,`y`,`z`,`version`) VALUES" + jointext(query_area_turfs, ", "))
+		query.Execute()
 	catch(var/exception/e)
 		to_world("<font size=3 color='red'>[e] on [e.file]:[e.line]</font>")
 	query_things = list()
 	query_thing_vars = list()
 	query_list_vars = list()
+	query_areas = list()
+	query_area_turfs = list()
 
 /datum/persistence/query_builder/proc/RefreshIndexes()
 	// var/database/query/query = new

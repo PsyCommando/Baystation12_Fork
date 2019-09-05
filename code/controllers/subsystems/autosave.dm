@@ -10,6 +10,9 @@ SUBSYSTEM_DEF(autosave)
 	var/saving = 0
 	var/announced = 0
 
+	// hax. removing when autosave is split up into new subsystem
+	var/list/areas_to_save = list()
+
 /datum/controller/subsystem/autosave/stat_entry()
 	..(saving ? "Currently Saving" : "Next autosave in [round((next_fire - world.time) / (1 MINUTE), 0.1)] minutes.")
 
@@ -41,6 +44,7 @@ SUBSYSTEM_DEF(autosave)
 	var/datum/persistence/query_builder/Q = new()
 	var/datum/persistence/serializer/save/S = new(Q)
 	var/chunks_processed = 0
+
 	to_world("<font size=3 color='green'>Saving chunks..</font>")
 	for(var/z in 1 to world.maxz)
 		for(var/x in 1 to world.maxx step SAVECHUNK_SIZEX)
@@ -52,9 +56,16 @@ SUBSYSTEM_DEF(autosave)
 				if(chunks_processed > 1000)
 					break
 
-	// to_world("<font size=3 color='green'>Saving areas..</font>")
-	// for(var/area/A in areas_to_save)
-	// 	if(istype(A, /area/space)) continue
+	to_world("<font size=3 color='green'>Saving areas..</font>")
+	for(var/area/A in areas_to_save)
+	 	if(istype(A, /area/space)) continue
+		
+		var/area_id = Q.AddArea(A.name, A.type)
+		for(var/turf/T in A.contents)
+			var/turf_id = S.get_or_save_thing(T)
+			Q.AddAreaTurf(area_id, turf_id, T.x, T.y, T.z)
+	Q.Execute()
+
 	// 	var/datum/area_holder/holder = new()
 	// 	holder.area_type = A.type
 	// 	holder.name = A.name
@@ -75,6 +86,11 @@ SUBSYSTEM_DEF(autosave)
 			var/turf/T = locate(x,y,z)
 			if(!T || ((T.type == /turf/space || T.type == /turf/simulated/open) && (!T.contents || !T.contents.len)))
 				continue
+
+			// This needs to be rewritten for smarter save caching.
+			areas_to_save |= T.loc
+
+			// Try to save the thing.
 			try
 				S.get_or_save_thing(T)
 			catch(var/exception/e)
