@@ -11,7 +11,7 @@
 /datum/persistence/serializer/load
 	var/list/resolved_things = list() // Used as a map to resolve indexes (ints) into objects.
 
-/datum/persistence/serializer/load/proc/GetOrLoadThing(var/index)
+/datum/persistence/serializer/load/proc/get_or_load_thing(var/index)
 	var/T = resolved_things[index]
 	if(T)
 		return T
@@ -20,7 +20,7 @@
 	T = deserialize_thing(index)
 	return T
 
-/datum/persistence/serializer/save/proc/GetOrSaveThing(var/T)
+/datum/persistence/serializer/save/proc/get_or_save_thing(var/T)
 	// Special guard check.
 	if(istype(T, /datum))
 		var/datum/D = T
@@ -71,14 +71,14 @@
 	if(!ref_map)
 		return
 	return ref_map[T]
-		
+
 // This is called when we have failed to GetOrSaveThing, meaning the Thing is not yet serialized.
 /datum/persistence/serializer/save/proc/serialize_thing(var/T)
-	//T.before_save()
 	// Create the thing. First determine what it is.
 	var/thing_id = 0
 	if(istype(T, /datum))
 		var/datum/D = T
+
 		// Before save preparation.
 		D.before_save()
 
@@ -90,62 +90,64 @@
 		var/foo = jointext(saved_vars, ", ")
 		//to_world("saving datum [D.type], vars: [foo]")
 		for(var/V in saved_vars)
-			var/thing_type
-			var/thing_value
-
 			// Guard check. Don't bother saving things with a default value
 			if(D.vars[V] == initial(D.vars[V]))
 				continue
-			// Guard check. Ignore deleted datums.
-			if(istype(D.vars[V], /datum))
-				var/datum/D2 = D.vars[V]
-				// Guard check. Don't save it if it says not to.
-				if(!D2.should_save())
-					continue
-				// Try to fetch the datum, in case it's already been serialized.
-				thing_value = "[GetOrSaveThing(D2)]"
-				thing_type = D2.type
-			// Guard check. Skip empty lists.
-			else if(islist(D.vars[V]))
-				var/list/L2 = D.vars[V]
-				if(!L2.len)
-					continue
-				// Try to fetch the list if it's somehow already been serialized.
-				thing_value = "[GetOrSaveThing(L2)]"
-				thing_type = "/list"
-			else
-				thing_value = "[D.vars[V]]"
-				thing_type = "basic"
-			// Passed the tests. Save the thing as a variable on the master thing.
-			Q.AddThingVar(thing_id, thing_type, V, thing_value)
+			serialize_thing_var(thing_id, D.vars[V], V)
 		// After save cleanup.
 		D.after_save()
 	else if(islist(T))
 		var/list/L = T // cast to list
-
 		thing_id = Q.AddThing("/list")		
 		add_thing_reference(L, thing_id)
 
 		for(var/item in L)
-			if(istype(item, /datum))
-				var/datum/D = item
-				// Guard check. Don't save it if it says not to.
-				if(!D.should_save)
-					continue
-				Q.AddThingListVar(thing_id, D.type, "[GetOrSaveThing(D)]")
-			else if(istype(item, /list))
-				var/list/L2 = item
-				if(!L2.len)
-					continue
-				Q.AddThingListVar(thing_id, "/list", "[GetOrSaveThing(L2)]")
-			else
-				Q.AddThingListVar(thing_id, "basic", "[item]")
+			serialize_thing_var(thing_id, item, 0, TRUE)
 	else
 		crash_with("SerializeThing was passed a basic data value? Stahp.")
 		return
 
-	//T.after_save()
 	return thing_id
+
+/datum/persistence/serializer/save/proc/serialize_thing_var(var/thing_id, var/V, var/var_name = "", var/is_list = FALSE)
+	if(istype(V, /weakref))
+		var/weakref/W = V
+		var/ref = W.resolve()
+		var/thing = serialize_thing(ref)
+		serialize_thing_var(thing_id, thing, is_list)
+	// Guard check. Ignore deleted datums.
+	else if(istype(V, /datum))
+		var/datum/D = V
+		// Guard check. Don't save it if it says not to.
+		if(!D.should_save())
+			return
+		// Add datum as an element to the thing.
+		if(is_list)
+			Q.AddThingListVar(thing_id, D.type, get_or_save_thing(D))
+		else 
+			Q.AddThingVar(thing_id, D.type, var_name, get_or_save_thing(D))
+	// Guard check. Skip empty lists.
+	else if(islist(V))
+		var/list/L = V
+		if(!L.len)
+			return
+
+		if(is_list)
+			Q.AddThingListVar(thing_id, "/list", get_or_save_thing(L))
+		else
+			Q.AddThingVar(thing_id, "/list", var_name, get_or_save_thing(L))
+	else
+		var/basic_type = "anomalous"
+		if(istype(V, null))
+			return // Do not serialize nulls.
+		else if(isnum(V))
+			basic_type = "number"
+		else if(istext(V))
+			basic_type = "text"
+		if(is_list)
+			Q.AddThingListVar(thing_id, basic_type, V)
+		else
+			Q.AddThingVar(thing_id, basic_type, var_name, V)
 
 /datum/persistence/serializer/load/proc/deserialize_thing(var/index)
 	establish_db_connection()
@@ -214,7 +216,7 @@
 			var/element_type = text2path(query.item[1])	
 			if(istype(element_type, /datum) || islist(element_type))
 				var/thing_index = text2num(query.item[2])
-				L += GetOrLoadThing(thing_index)
+				L += get_or_load_thing(thing_index)
 			else
 				crash_with("I don't know what [element_type] is. List deserialization failed.")
 				continue
@@ -225,7 +227,7 @@
 			else if(query.item[1] == "/list" || query.item[1] == "/thing")
 				// value will be the index.
 				var/thing_index = text2num(query.item[3])
-				T[query.item[2]] = GetOrLoadThing(thing_index)
+				T[query.item[2]] = get_or_load_thing(thing_index)
 			else
 				crash_with("Unable to figure out what [query.item[1]] is for [index]. Variable [query.item[2]], value: [query.item[3]]")
 	return T

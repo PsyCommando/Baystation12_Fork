@@ -50,7 +50,7 @@ SUBSYSTEM_DEF(autosave)
 				Q.Execute()
 				chunks_processed++
 				if(chunks_processed > 1000)
-					break	
+					break
 
 	// to_world("<font size=3 color='green'>Saving areas..</font>")
 	// for(var/area/A in areas_to_save)
@@ -76,7 +76,7 @@ SUBSYSTEM_DEF(autosave)
 			if(!T || ((T.type == /turf/space || T.type == /turf/simulated/open) && (!T.contents || !T.contents.len)))
 				continue
 			try
-				S.GetOrSaveThing(T)
+				S.get_or_save_thing(T)
 			catch(var/exception/e)
 				to_world("[e] on [e.file]:[e.line]")
 
@@ -91,7 +91,7 @@ SUBSYSTEM_DEF(autosave)
 	query.Execute()
 
 	while(query.NextRow())
-		L.GetOrLoadThing(query.item[1])
+		L.get_or_load_thing(query.item[1])
 
 /datum/controller/subsystem/autosave/proc/AnnounceSave()
 	var/minutes = (next_fire - world.time) / (1 MINUTE)

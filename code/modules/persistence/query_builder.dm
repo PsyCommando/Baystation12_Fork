@@ -22,7 +22,7 @@
 /datum/persistence/query_builder/proc/AddThingVar(var/thing_id, var/type, var/name, var/value)
 	thing_var_index++
 	var/sname = sql_sanitize_text(name)
-	var/svalue = sql_sanitize_text(value)
+	var/svalue = sql_sanitize_text("[value]")
 	query_thing_vars += "([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version])"
 	//Q += "INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version])"
 	//world.log << "INSERT INTO `thing_var` (`id`, `thing_id`,`type`,`name`,`value`,`version`) VALUES([thing_var_index],[thing_id],'[type]','[sname]','[svalue]',[version]);"
@@ -30,7 +30,7 @@
 
 /datum/persistence/query_builder/proc/AddThingListVar(var/thing_id, var/type, var/value)
 	thing_list_var_index++
-	var/svalue = sql_sanitize_text(value)
+	var/svalue = sql_sanitize_text("[value]")
 	query_list_vars += "([thing_list_var_index],[thing_id],'[type]','[svalue]',[version])"
 	//Q += "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version])"
 	//world.log << "INSERT INTO `thing_list_var` (`id`, `thing_id`, `type`, `value`, `version`) VALUES([thing_list_var_index],[thing_id],'[type]','[svalue]',[version]);"
