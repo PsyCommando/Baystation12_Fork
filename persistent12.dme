@@ -1373,6 +1373,7 @@
 #include "code\modules\atmospherics\components\omni_devices\mixer.dm"
 #include "code\modules\atmospherics\components\omni_devices\omni_base.dm"
 #include "code\modules\atmospherics\components\trinary_devices\trinary_base.dm"
+#include "code\modules\atmospherics\components\unary\air_recycler.dm"
 #include "code\modules\atmospherics\components\unary\cold_sink.dm"
 #include "code\modules\atmospherics\components\unary\generator_input.dm"
 #include "code\modules\atmospherics\components\unary\heat_exchanger.dm"

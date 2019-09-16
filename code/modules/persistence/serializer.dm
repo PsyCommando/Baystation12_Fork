@@ -95,18 +95,25 @@
 		// After save cleanup.
 		D.after_save()
 	else if(islist(T))
-		var/list/L = T // cast to list
 		thing_id = Q.AddThing("/list")
-		add_thing_reference(L, thing_id)
+		add_thing_reference(T, thing_id)
 
 		var/item
+		var/is_assoc = FALSE
+		for(item in T)
+			if(isnum(item))
+				break
+			if(istext(item) && !isnull(T[item]))
+				is_assoc = TRUE
+				break
+
 		// Actually serialize the list.
-		for(item in L)
+		for(item in T)
 			try
-				if(isnull(item) || isnum(item) || isnull(L[item]))
+				if(!is_assoc)
 					serialize_thing_var(thing_id, item, "", TRUE)
 				else
-					serialize_thing_var(thing_id, L[item], item, TRUE)
+					serialize_thing_var(thing_id, T[item], item, TRUE)
 			catch(var/exception/e)
 				to_world("[e] on [e.file]:[e.line], item value: '[item]'. isnull: [isnull(item)], isnum: [isnum(item)]")
 				
@@ -132,9 +139,9 @@
 			return
 		// Add datum as an element to the thing.
 		if(is_list)
-			Q.AddThingListVar(thing_id, D.type, var_name, get_or_save_thing(D))
+			Q.AddThingListVar(thing_id, D.type, var_name, get_or_save_thing(V))
 		else
-			Q.AddThingVar(thing_id, D.type, var_name, get_or_save_thing(D))
+			Q.AddThingVar(thing_id, D.type, var_name, get_or_save_thing(V))
 	// Guard check. Skip empty lists.
 	else if(islist(V))
 		var/list/L = V
@@ -142,9 +149,9 @@
 			return
 
 		if(is_list)
-			Q.AddThingListVar(thing_id, "/list", var_name, get_or_save_thing(L))
+			Q.AddThingListVar(thing_id, "/list", var_name, get_or_save_thing(V))
 		else
-			Q.AddThingVar(thing_id, "/list", var_name, get_or_save_thing(L))
+			Q.AddThingVar(thing_id, "/list", var_name, get_or_save_thing(V))
 	else
 		var/basic_type = "anomalous"
 		if(V == null)

@@ -1,5 +1,6 @@
 obj/machinery/atmospherics/unary/air_recycler
 	//icon = 'icons/obj/atmospherics/air_recycler.dmi'
+	icon = 'icons/obj/atmospherics/oxygen_generator.dmi'
 	icon_state = "intact_off"
 	density = 1
 
@@ -11,7 +12,7 @@ obj/machinery/atmospherics/unary/air_recycler
 
 	var/on = 0
 
-	var/recycler_efficiency = 1
+	var/recycler_efficiency = 10
 	//var/oxygen_content = 10
 
 	update_icon()
@@ -40,8 +41,8 @@ obj/machinery/atmospherics/unary/air_recycler
 		if(extracted_co2 <= 0)
 			return 1
 
-		var/returned_co = extracted_co2 * .66
-		var/returned_o2 = extracted_co2 * .34
+		var/returned_co = extracted_co2 * 0.66
+		var/returned_o2 = extracted_co2 * 0.34
 
 		air_contents.adjust_gas(GAS_OXYGEN, returned_o2, 35)
 		air_contents.adjust_gas(GAS_CO, returned_co, 35)
