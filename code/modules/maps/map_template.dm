@@ -158,7 +158,9 @@
 
 	return TRUE
 
-/datum/map_template/proc/after_load(z)
+/datum/map_template/after_load(z)
+	..()
+
 	for(var/obj/effect/landmark/map_load_mark/mark in subtemplates_to_spawn)
 		if(LAZYLEN(mark.templates))
 			var/template = pick(mark.templates)

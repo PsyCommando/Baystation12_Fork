@@ -7,7 +7,7 @@ SUBSYSTEM_DEF(ticker)
 	runlevels = RUNLEVEL_LOBBY | RUNLEVELS_DEFAULT
 
 	var/pregame_timeleft = 3 MINUTES
-	var/start_ASAP = FALSE          //the game will start as soon as possible, bypassing all pre-game nonsense
+	var/start_ASAP = TRUE           //the game will start as soon as possible, bypassing all pre-game nonsense
 	var/list/gamemode_vote_results  //Will be a list, in order of preference, of form list(config_tag = number of votes).
 	var/bypass_gamemode_vote = 0    //Intended for use with admin tools. Will avoid voting and ignore any results.
 
@@ -28,6 +28,13 @@ SUBSYSTEM_DEF(ticker)
 	var/looking_for_antags = 0
 
 /datum/controller/subsystem/ticker/Initialize()
+	if(config.persistent_mode)
+		master_mode = "persistent"
+		mode = /datum/game_mode/persistent()
+		start_ASAP = TRUE
+		Load_World()
+		to_world("<B><FONT color='blue'>Welcome to persistent mode!</FONT></B>")
+		return ..()
 	to_world("<B><FONT color='blue'>Welcome to the pre-game lobby!</FONT></B>")
 	to_world("Please, setup your character and select ready. Game will start in [round(pregame_timeleft/10)] seconds")
 	return ..()
@@ -58,6 +65,13 @@ SUBSYSTEM_DEF(ticker)
 			SSvote.initiate_vote(/datum/vote/gamemode, automatic = 1)
 
 /datum/controller/subsystem/ticker/proc/setup_tick()
+	if(config.persistent_mode)
+		GLOB.using_map.setup_economy()
+		Master.SetRunLevel(RUNLEVEL_GAME)
+
+		collect_minds()
+		callHook("roundstart")
+		return
 	switch(choose_gamemode())
 		if(CHOOSE_GAMEMODE_SILENT_REDO)
 			return
@@ -350,7 +364,7 @@ Helpers
 		return mode.check_finished() || (evacuation_controller.round_over() && evacuation_controller.emergency_evacuation) || universe_has_ended
 
 /datum/controller/subsystem/ticker/proc/mode_finished()
-	if(config.continous_rounds)
+	if(config.continous_rounds || config.persistent_mode)
 		return mode.check_finished()
 	else
 		return game_finished()
