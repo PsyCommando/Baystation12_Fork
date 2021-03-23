@@ -146,17 +146,6 @@
 			return TRUE
 	return FALSE
 
-/obj/item/ex_act(severity)
-	switch(severity)
-		if(1)
-			qdel(src)
-		if(2)
-			if (prob(50))
-				qdel(src)
-		if(3)
-			if (prob(5))
-				qdel(src)
-
 /obj/item/examine(mob/user, distance)
 	var/size
 	switch(src.w_class)

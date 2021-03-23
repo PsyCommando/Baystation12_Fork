@@ -16,15 +16,6 @@
 	var/anchor_fall = FALSE
 	var/holographic = 0 //if the obj is a holographic object spawned by the holodeck
 
-	//health stuff
-	var/health = null
-	var/maxHealth = null
-
-/obj/New()
-	. = ..()
-	if(!health) //If no default health set, start at full health
-		health = maxHealth
-
 /obj/Destroy()
 	STOP_PROCESSING(SSobj, src)
 	return ..()

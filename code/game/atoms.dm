@@ -57,7 +57,14 @@
 		if(istype(T))
 			T.handle_opacity_change(src)
 
+	InitDefaultValues()
+
 	return INITIALIZE_HINT_NORMAL
+
+//Called exactly once for the entire existence of an object, and not on every map load
+// Use for spawning content, components, setting freshly spawned values.
+/atom/proc/InitDefaultValues()
+	return
 
 //called if Initialize returns INITIALIZE_HINT_LATELOAD
 /atom/proc/LateInitialize()

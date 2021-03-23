@@ -81,7 +81,7 @@
 		damageable_components += RC
 	if(!damageable_components.len) return
 	var/obj/item/robot_parts/robot_component/RC = pick(damageable_components)
-	if(RC.take_damage(brute, burn))
+	if(RC.take_damages(brute, burn))
 		qdel(RC)
 		update_components()
 

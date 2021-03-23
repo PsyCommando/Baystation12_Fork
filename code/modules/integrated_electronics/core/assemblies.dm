@@ -480,18 +480,12 @@
 			user.visible_message("\The [user] patches up \the [src]")
 			health = min(maxHealth, health + 5)
 	else
-		if(user.a_intent == I_HURT) // Kill it
-			to_chat(user, "<span class='danger'>\The [user] hits \the [src] with \the [I]</span>")
-			take_damage(I.force)
-		else
-			for(var/obj/item/integrated_circuit/input/S in assembly_components)
-				S.attackby_react(I,user,user.a_intent)
+		for(var/obj/item/integrated_circuit/input/S in assembly_components)
+			S.attackby_react(I,user,user.a_intent)
+		return . = ..()
 
 /obj/item/device/electronic_assembly/attack_self(mob/user)
 	interact(user)
-
-/obj/item/device/electronic_assembly/bullet_act(var/obj/item/projectile/P)
-	take_damage(P.force)
 
 /obj/item/device/electronic_assembly/emp_act(severity)
 	. = ..()

@@ -97,7 +97,7 @@
 		O.emp_act(severity)
 	..()
 
-/mob/living/proc/resolve_item_attack(obj/item/I, mob/living/user, var/target_zone)
+/mob/living/resolve_item_attack(obj/item/I, mob/living/user, var/target_zone)
 	return target_zone
 
 //Called when the mob is hit with an item in combat. Returns the blocked result

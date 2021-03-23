@@ -60,30 +60,30 @@ avoid code duplication. This includes items that may sometimes act as a standard
 	return
 
 //I would prefer to rename this attack_as_weapon(), but that would involve touching hundreds of files.
-/obj/item/proc/attack(mob/living/M, mob/living/user, var/target_zone)
+/obj/item/proc/attack(atom/A, mob/living/user, var/target_zone)
 	if(!force || (item_flags & ITEM_FLAG_NO_BLUDGEON))
 		return 0
-	if(M == user && user.a_intent != I_HURT)
+	if(A == user && user.a_intent != I_HURT)
 		return 0
 
 	/////////////////////////
 
 	if(!no_attack_log)
-		admin_attack_log(user, M, "Attacked using \a [src] (DAMTYE: [uppertext(damage_type)])", "Was attacked with \a [src] (DAMTYE: [uppertext(damage_type)])", "used \a [src] (DAMTYE: [uppertext(damage_type)]) to attack")
+		admin_attack_log(user, A, "Attacked using \a [src] (DAMTYE: [uppertext(damage_type)])", "Was attacked with \a [src] (DAMTYE: [uppertext(damage_type)])", "used \a [src] (DAMTYE: [uppertext(damage_type)]) to attack")
 	/////////////////////////
 	user.setClickCooldown(attack_cooldown + w_class)
-	user.do_attack_animation(M)
+	user.do_attack_animation(A)
 	if(!user.aura_check(AURA_TYPE_WEAPON, src, user))
 		return 0
 
-	var/hit_zone = M.resolve_item_attack(src, user, target_zone)
+	var/hit_zone = A.resolve_item_attack(src, user, target_zone)
 	if(hit_zone)
-		apply_hit_effect(M, user, hit_zone)
+		apply_hit_effect(A, user, hit_zone)
 
 	return 1
 
 //Called when a weapon is used to make a successful melee attack on a mob. Returns whether damage was dealt.
-/obj/item/proc/apply_hit_effect(mob/living/target, mob/living/user, var/hit_zone)
+/obj/item/proc/apply_hit_effect(atom/target, mob/living/user, var/hit_zone)
 	if(hitsound)
 		playsound(loc, hitsound, 50, 1, -1)
 
